@@ -5,9 +5,6 @@
 //! operations. Extra platform-specific functionality can be found in the
 //! extension traits of `std::os::$platform`.
 
-#[cfg(all(test, not(any(target_os = "emscripten", target_env = "sgx"))))]
-mod tests;
-
 use std::ffi::OsString;
 use std::fmt;
 use std::io::{self, Read, Seek, SeekFrom, Write};
