@@ -119,10 +119,7 @@ impl DirEntry {
     }
 
     pub fn file_name(&self) -> OsString {
-        match &self.entry {
-            Entry::File{..} => From::from(&self.name),
-            Entry::Dir{..} => From::from(&self.name),
-        }
+        From::from(&self.name)
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
