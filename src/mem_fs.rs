@@ -212,7 +212,7 @@ pub fn stat(p: &Path) -> io::Result<FileAttr> {
 }
 
 pub fn lstat(p: &Path) -> io::Result<FileAttr> {
-    Ok(FileAttr { size: 0, ty: FileType::PlainFile })
+    stat(p)
 }
 
 pub fn rename(old: &Path, new: &Path) -> io::Result<()> {
