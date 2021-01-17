@@ -9,9 +9,9 @@ use std::sync::Mutex;
 
 use lazy_static::lazy_static;
 
+/// An open file
 #[derive(Debug, Default)]
 pub struct File {
-    data: Vec<u8>, // TODO: std::io::Cursor
     // TODO: &DataFile
 }
 
@@ -45,7 +45,7 @@ lazy_static! {
             DirEntry {
                 name: "hello.txt".to_string(),
                 entry: Entry::File {
-                    file: File {
+                    file: DataFile {
                         data: vec![41, 42, 43],
                     }
                 }
@@ -186,7 +186,7 @@ pub struct DirEntry {
 #[derive(Debug)]
 enum Entry {
     File {
-        file: File,
+        file: DataFile,
     },
     Dir {
         dir: Dir,
