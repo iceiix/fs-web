@@ -10,7 +10,33 @@ use std::sync::Arc;
 use std::sys::fd::FileDesc;
 use std::sys::time::SystemTime;
 use std::sys::{cvt, cvt_r};
-use std::sys_common::{AsInner, FromInner};
+
+//use std::sys_common::{AsInner, FromInner};
+// https://github.com/rust-lang/rust/blob/master/library/std/src/sys_common/mod.rs#L87
+/// A trait for viewing representations from std types
+#[doc(hidden)]
+pub trait AsInner<Inner: ?Sized> {
+    fn as_inner(&self) -> &Inner;
+}
+
+/// A trait for viewing representations from std types
+#[doc(hidden)]
+pub trait AsInnerMut<Inner: ?Sized> {
+    fn as_inner_mut(&mut self) -> &mut Inner;
+}
+
+/// A trait for extracting representations from std types
+#[doc(hidden)]
+pub trait IntoInner<Inner> {
+    fn into_inner(self) -> Inner;
+}
+
+/// A trait for creating std types from internal representations
+#[doc(hidden)]
+pub trait FromInner<Inner> {
+    fn from_inner(inner: Inner) -> Self;
+
+
 
 use libc::{c_int, mode_t};
 
