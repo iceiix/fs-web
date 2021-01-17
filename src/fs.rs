@@ -563,6 +563,7 @@ pub fn readdir(p: &Path) -> io::Result<ReadDir> {
             let inner = InnerReadDir { dirp: Dir(ptr), root };
             Ok(ReadDir {
                 inner: Arc::new(inner),
+                end_of_stream: false,
             })
         }
     }
