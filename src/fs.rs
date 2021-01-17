@@ -37,11 +37,11 @@ macro_rules! impl_is_minus_one {
 
 impl_is_minus_one! { i8 i16 i32 i64 isize }
 
-pub fn cvt<T: IsMinusOne>(t: T) -> crate::io::Result<T> {
-    if t.is_minus_one() { Err(crate::io::Error::last_os_error()) } else { Ok(t) }
+pub fn cvt<T: IsMinusOne>(t: T) -> std::io::Result<T> {
+    if t.is_minus_one() { Err(std::io::Error::last_os_error()) } else { Ok(t) }
 }
 
-pub fn cvt_r<T, F>(mut f: F) -> crate::io::Result<T>
+pub fn cvt_r<T, F>(mut f: F) -> std::io::Result<T>
 where
     T: IsMinusOne,
     F: FnMut() -> T,
