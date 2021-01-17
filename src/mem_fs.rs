@@ -85,13 +85,17 @@ impl FileAttr {
 }
 
 #[derive(Debug)]
-pub enum DirEntry {
+pub struct DirEntry {
+    name: String,
+    entry: Entry,
+}
+
+#[derive(Debug)]
+enum Entry {
     File {
-        name: String,
         file: File,
     },
     Directory {
-        name: String,
         directory: Directory,
     }
 }
@@ -102,12 +106,12 @@ impl DirEntry {
     }
 
     pub fn metadata(&self) -> io::Result<FileAttr> {
-        Ok(match self {
-            DirEntry::File{file, ..} => FileAttr {
+        Ok(match &self.entry {
+            Entry::File{file, ..} => FileAttr {
                 size: file.data.len() as u64,
                 ty: FileType::PlainFile,
             },
-            DirEntry::Directory{directory, ..} => FileAttr {
+            Entry::Directory{directory, ..} => FileAttr {
                 size: 0,
                 ty: FileType::Directory,
             },
@@ -115,16 +119,16 @@ impl DirEntry {
     }
 
     pub fn file_name(&self) -> OsString {
-        match self {
-            DirEntry::File{name, ..} => From::from(&name),
-            DirEntry::Directory{name, ..} => From::from(&name),
+        match &self.entry {
+            Entry::File{..} => From::from(&self.name),
+            Entry::Directory{..} => From::from(&self.name),
         }
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
-        Ok(match self {
-            DirEntry::File{..} => FileType::PlainFile,
-            DirEntry::Directory{..} => FileType::Directory,
+        Ok(match &self.entry {
+            Entry::File{..} => FileType::PlainFile,
+            Entry::Directory{..} => FileType::Directory,
         })
     }
 }
