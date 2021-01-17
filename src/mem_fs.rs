@@ -11,6 +11,13 @@ use lazy_static::lazy_static;
 
 #[derive(Debug, Default)]
 pub struct File {
+    data: Vec<u8>, // TODO: std::io::Cursor
+    // TODO: &DataFile
+}
+
+// Private structures holding the actual filesystem data
+#[derive(Debug)]
+struct DataFile {
     data: Vec<u8>,
 }
 
@@ -33,7 +40,19 @@ impl Dir {
 }
 
 lazy_static! {
-    static ref ROOT: Mutex<Dir> = Mutex::new(Dir { entries: vec![] });
+    static ref ROOT: Mutex<Dir> = Mutex::new(Dir {
+        entries: vec![
+            DirEntry {
+                name: "hello.txt".to_string(),
+                entry: Entry::File {
+                    file: File {
+                        data: vec![41, 42, 43],
+                    }
+                }
+            }
+        // TODO: more static entries with include_bytes!()
+        ]
+    });
 }
 
 impl File {
