@@ -1,3 +1,5 @@
+#![allow(dead_code)] // TODO: remove dead code, much isn't used
+
 use std::os::unix::prelude::*;
 
 use std::ffi::{CStr, CString, OsStr, OsString};

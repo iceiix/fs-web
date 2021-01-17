@@ -27,6 +27,7 @@ use crate::fs;
 use std::io::{self, Error, ErrorKind};
 use std::path::Path;
 
+#[allow(dead_code)] // TODO: use where it is supposed to be used
 pub fn copy(from: &Path, to: &Path) -> io::Result<u64> {
     let mut reader = fs::File::open(from)?;
     let metadata = reader.metadata()?;
