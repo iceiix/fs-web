@@ -32,7 +32,7 @@ use libc::{
     stat as stat64,
 };
 
-pub use crate::sys_common::fs::remove_dir_all
+pub use crate::sys_common::remove_dir_all;
 
 pub struct File(FileDesc);
 

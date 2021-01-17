@@ -23,11 +23,9 @@ pub trait FromInner<Inner> {
 }
 
 // https://github.com/rust-lang/rust/blob/master/library/std/src/sys_common/fs.rs
-#![allow(dead_code)] // not used on all platforms
-
 use crate::fs;
-use crate::io::{self, Error, ErrorKind};
-use crate::path::Path;
+use std::io::{self, Error, ErrorKind};
+use std::path::Path;
 
 pub fn copy(from: &Path, to: &Path) -> io::Result<u64> {
     let mut reader = fs::File::open(from)?;
