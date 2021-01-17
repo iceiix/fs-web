@@ -43,14 +43,14 @@ use libc::{c_int, mode_t};
 use libc::dirfd;
 use libc::fstatat64;
 use libc::{
-    dirent, fstat, ftruncate, lseek, lstat, off_t, open, readdir_r, stat,
+    dirent64, fstat64, ftruncate64, lseek64, lstat64, off64_t, open64, readdir64_r, stat64,
 };
 
 pub struct File(FileDesc);
 
 #[derive(Clone)]
 pub struct FileAttr {
-    stat: stat,
+    stat: stat64,
 }
 
 // all DirEntry's will have a reference to this struct
@@ -70,7 +70,7 @@ unsafe impl Send for Dir {}
 unsafe impl Sync for Dir {}
 
 pub struct DirEntry {
-    entry: dirent,
+    entry: dirent64,
     dir: Arc<InnerReadDir>,
     // We need to store an owned copy of the entry name
     // on Solaris and Fuchsia because a) it uses a zero-length
@@ -115,7 +115,7 @@ pub struct DirBuilder {
 }
 
     impl FileAttr {
-        fn from_stat(stat: stat) -> Self {
+        fn from_stat64(stat: stat64) -> Self {
             Self { stat }
         }
     }
@@ -157,8 +157,8 @@ impl FileAttr {
     }
 }
 
-impl AsInner<stat> for FileAttr {
-    fn as_inner(&self) -> &stat {
+impl AsInner<stat64> for FileAttr {
+    fn as_inner(&self) -> &stat64 {
         &self.stat
     }
 }
@@ -225,7 +225,7 @@ impl Iterator for ReadDir {
             let mut ret = DirEntry { entry: mem::zeroed(), dir: Arc::clone(&self.inner) };
             let mut entry_ptr = ptr::null_mut();
             loop {
-                if readdir_r(self.inner.dirp.0, &mut ret.entry, &mut entry_ptr) != 0 {
+                if readdir64_r(self.inner.dirp.0, &mut ret.entry, &mut entry_ptr) != 0 {
                     if entry_ptr.is_null() {
                         // We encountered an error (which will be returned in this iteration), but
                         // we also reached the end of the directory stream. The `end_of_stream`
@@ -266,9 +266,9 @@ impl DirEntry {
         let fd = cvt(unsafe { dirfd(self.dir.dirp.0) })?;
         let name = self.entry.d_name.as_ptr();
 
-        let mut stat: stat = unsafe { mem::zeroed() };
+        let mut stat: stat64 = unsafe { mem::zeroed() };
         cvt(unsafe { fstatat64(fd, name, &mut stat, libc::AT_SYMLINK_NOFOLLOW) })?;
-        Ok(FileAttr::from_stat(stat))
+        Ok(FileAttr::from_stat64(stat))
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
@@ -382,20 +382,20 @@ impl File {
             | opts.get_access_mode()?
             | opts.get_creation_mode()?
             | (opts.custom_flags as c_int & !libc::O_ACCMODE);
-        // The third argument of `open` is documented to have type `mode_t`. On
-        // some platforms (like macOS, where `open` is actually `open`), `mode_t` is `u16`.
+        // The third argument of `open64` is documented to have type `mode_t`. On
+        // some platforms (like macOS, where `open64` is actually `open`), `mode_t` is `u16`.
         // However, since this is a variadic function, C integer promotion rules mean that on
         // the ABI level, this still gets passed as `c_int` (aka `u32` on Unix platforms).
-        let fd = cvt_r(|| unsafe { open(path.as_ptr(), flags, opts.mode as c_int) })?;
+        let fd = cvt_r(|| unsafe { open64(path.as_ptr(), flags, opts.mode as c_int) })?;
         Ok(File(FileDesc::new(fd)))
     }
 
     pub fn file_attr(&self) -> io::Result<FileAttr> {
         let fd = self.0.raw();
 
-        let mut stat: stat = unsafe { mem::zeroed() };
-        cvt(unsafe { fstat(fd, &mut stat) })?;
-        Ok(FileAttr::from_stat(stat))
+        let mut stat: stat64 = unsafe { mem::zeroed() };
+        cvt(unsafe { fstat64(fd, &mut stat) })?;
+        Ok(FileAttr::from_stat64(stat))
     }
 
     pub fn fsync(&self) -> io::Result<()> {
@@ -419,9 +419,9 @@ impl File {
     pub fn truncate(&self, size: u64) -> io::Result<()> {
         {
             use std::convert::TryInto;
-            let size: off_t =
+            let size: off64_t =
                 size.try_into().map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            cvt_r(|| unsafe { ftruncate(self.0.raw(), size) }).map(drop)
+            cvt_r(|| unsafe { ftruncate64(self.0.raw(), size) }).map(drop)
         }
     }
 
@@ -466,12 +466,12 @@ impl File {
     pub fn seek(&self, pos: SeekFrom) -> io::Result<u64> {
         let (whence, pos) = match pos {
             // Casting to `i64` is fine, too large values will end up as
-            // negative which will cause an error in `lseek`.
+            // negative which will cause an error in `lseek64`.
             SeekFrom::Start(off) => (libc::SEEK_SET, off as i64),
             SeekFrom::End(off) => (libc::SEEK_END, off),
             SeekFrom::Current(off) => (libc::SEEK_CUR, off),
         };
-        let n = cvt(unsafe { lseek(self.0.raw(), pos, whence) })?;
+        let n = cvt(unsafe { lseek64(self.0.raw(), pos, whence) })?;
         Ok(n as u64)
     }
 
@@ -632,17 +632,17 @@ pub fn link(original: &Path, link: &Path) -> io::Result<()> {
 pub fn stat(p: &Path) -> io::Result<FileAttr> {
     let p = cstr(p)?;
 
-    let mut stat: stat = unsafe { mem::zeroed() };
-    cvt(unsafe { stat(p.as_ptr(), &mut stat) })?;
-    Ok(FileAttr::from_stat(stat))
+    let mut stat: stat64 = unsafe { mem::zeroed() };
+    cvt(unsafe { stat64(p.as_ptr(), &mut stat) })?;
+    Ok(FileAttr::from_stat64(stat))
 }
 
 pub fn lstat(p: &Path) -> io::Result<FileAttr> {
     let p = cstr(p)?;
 
-    let mut stat: stat = unsafe { mem::zeroed() };
-    cvt(unsafe { lstat(p.as_ptr(), &mut stat) })?;
-    Ok(FileAttr::from_stat(stat))
+    let mut stat: stat64 = unsafe { mem::zeroed() };
+    cvt(unsafe { lstat64(p.as_ptr(), &mut stat) })?;
+    Ok(FileAttr::from_stat64(stat))
 }
 
 pub fn canonicalize(p: &Path) -> io::Result<PathBuf> {
