@@ -1,4 +1,4 @@
-use std::io::{self, Error, ErrorKind, IoSlice, IoSliceMut, SeekFrom};
+use std::io::ErrorKind;
 
 #[doc(hidden)]
 pub trait IsMinusOne {
