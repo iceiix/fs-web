@@ -12,7 +12,7 @@ pub struct File {
 }
 
 #[derive(Debug)]
-struct Directory {
+struct Dir {
     entries: Vec<DirEntry>,
 }
 
@@ -34,7 +34,7 @@ impl File {
     }
 
     pub fn file_attr(&self) -> io::Result<FileAttr> {
-        Ok(FileAttr { size: 0, ty: FileType::PlainFile })
+        Ok(FileAttr { size: 0, ty: FileType::File })
     }
 
     pub fn duplicate(&self) -> io::Result<File> {
@@ -95,8 +95,8 @@ enum Entry {
     File {
         file: File,
     },
-    Directory {
-        directory: Directory,
+    Dir {
+        dir: Dir,
     }
 }
 
@@ -109,11 +109,11 @@ impl DirEntry {
         Ok(match &self.entry {
             Entry::File{file, ..} => FileAttr {
                 size: file.data.len() as u64,
-                ty: FileType::PlainFile,
+                ty: FileType::File,
             },
-            Entry::Directory{directory, ..} => FileAttr {
+            Entry::Dir{dir, ..} => FileAttr {
                 size: 0,
-                ty: FileType::Directory,
+                ty: FileType::Dir,
             },
         })
     }
@@ -121,14 +121,14 @@ impl DirEntry {
     pub fn file_name(&self) -> OsString {
         match &self.entry {
             Entry::File{..} => From::from(&self.name),
-            Entry::Directory{..} => From::from(&self.name),
+            Entry::Dir{..} => From::from(&self.name),
         }
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
         Ok(match &self.entry {
-            Entry::File{..} => FileType::PlainFile,
-            Entry::Directory{..} => FileType::Directory,
+            Entry::File{..} => FileType::File,
+            Entry::Dir{..} => FileType::Dir,
         })
     }
 }
@@ -190,21 +190,21 @@ impl FilePermissions {
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum FileType {
-    PlainFile,
-    Directory,
+    File,
+    Dir,
 }
 
 impl FileType {
     pub fn is_dir(&self) -> bool {
         match self {
-            FileType::Directory => true,
+            FileType::Dir => true,
             _ => false,
         }
     }
 
     pub fn is_file(&self) -> bool {
         match self {
-            FileType::PlainFile => true,
+            FileType::File => true,
             _ => false,
         }
     }
@@ -243,7 +243,7 @@ pub fn unlink(p: &Path) -> io::Result<()> {
 }
 
 pub fn stat(p: &Path) -> io::Result<FileAttr> {
-    Ok(FileAttr { size: 0, ty: FileType::PlainFile })
+    Ok(FileAttr { size: 0, ty: FileType::File })
 }
 
 pub fn lstat(p: &Path) -> io::Result<FileAttr> {
