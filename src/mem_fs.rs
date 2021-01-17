@@ -6,7 +6,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::io::{self, SeekFrom};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug)]
 pub struct File {}
 
 impl File {
@@ -31,7 +31,9 @@ impl File {
     }
 
     pub fn duplicate(&self) -> io::Result<File> {
-        Ok(*self)
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "duplicate is not available on this platform"))
     }
 
     pub fn set_permissions(&self, perm: FilePermissions) -> io::Result<()> {
