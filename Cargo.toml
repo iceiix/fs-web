@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2.82"
+cfg-if = "1.0.0"
