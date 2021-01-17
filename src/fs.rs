@@ -157,17 +157,20 @@ impl FileAttr {
 
 impl FileAttr {
     pub fn modified(&self) -> io::Result<SystemTime> {
-        Ok(SystemTime::from(libc::timespec {
-            tv_sec: self.stat.st_mtime as libc::time_t,
-            tv_nsec: self.stat.st_mtime_nsec as _,
-        }))
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "modified time is not available on this platform \
+                            currently",
+        ))
+
     }
 
     pub fn accessed(&self) -> io::Result<SystemTime> {
-        Ok(SystemTime::from(libc::timespec {
-            tv_sec: self.stat.st_atime as libc::time_t,
-            tv_nsec: self.stat.st_atime_nsec as _,
-        }))
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "accessed time is not available on this platform \
+                            currently",
+        ))
     }
 
     pub fn created(&self) -> io::Result<SystemTime> {
