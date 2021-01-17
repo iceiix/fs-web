@@ -41,9 +41,17 @@ pub trait FromInner<Inner> {
 use libc::{c_int, mode_t};
 
 use libc::dirfd;
-use libc::fstatat64;
+use libc::fstatat as fstatat64;
 use libc::{
-    dirent64, fstat64, ftruncate64, lseek64, lstat64, off64_t, open64, readdir64_r, stat64,
+    dirent as dirent64,
+    fstat as fstat64,
+    ftruncate as ftruncate64,
+    lseek as lseek64,
+    lstat as lstat64,
+    off_t as off64_t,
+    open as open64,
+    readdir_r as readdir64_r,
+    stat as stat64,
 };
 
 pub struct File(FileDesc);
