@@ -6,12 +6,14 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::io::{self, SeekFrom};
 
-#[derive(Debug)]
-pub struct File {}
+#[derive(Debug, Default)]
+pub struct File {
+    data: Vec<u8>,
+}
 
 impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
-        Ok(File{})
+        Ok(File::default())
     }
 
     pub fn fsync(&self) -> io::Result<()> {
@@ -77,8 +79,11 @@ impl FileAttr {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
-pub struct DirEntry {}
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct DirEntry {
+    name: String,
+    attr: FileAttr,
+}
 
 impl DirEntry {
     pub fn path(&self) -> PathBuf {
@@ -86,15 +91,15 @@ impl DirEntry {
     }
 
     pub fn metadata(&self) -> io::Result<FileAttr> {
-        Ok(FileAttr { size: 0, ty: FileType::PlainFile })
+        Ok(self.attr)
     }
 
     pub fn file_name(&self) -> OsString {
-        OsString::new()
+        From::from(&self.name)
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
-        Ok(FileType::PlainFile)
+        Ok(self.attr.file_type())
     }
 }
 
