@@ -10,7 +10,7 @@ mod tests;
 
 use std::ffi::OsString;
 use std::fmt;
-use std::io::{self, Initializer, IoSlice, IoSliceMut, Read, Seek, SeekFrom, Write};
+use std::io::{self, IoSlice, IoSliceMut, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 //use std::sys::fs as fs_imp;
 use crate::unix_fs as fs_imp;
@@ -600,11 +600,6 @@ impl Read for File {
         self.inner.is_read_vectored()
     }
 
-    #[inline]
-    unsafe fn initializer(&self) -> Initializer {
-        // SAFETY: Read is guaranteed to work on uninitialized memory
-        unsafe { Initializer::nop() }
-    }
 }
 impl Write for File {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
@@ -641,12 +636,6 @@ impl Read for &File {
     #[inline]
     fn is_read_vectored(&self) -> bool {
         self.inner.is_read_vectored()
-    }
-
-    #[inline]
-    unsafe fn initializer(&self) -> Initializer {
-        // SAFETY: Read is guaranteed to work on uninitialized memory
-        unsafe { Initializer::nop() }
     }
 }
 impl Write for &File {
@@ -1699,11 +1688,6 @@ pub fn hard_link<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Re
 ///     Ok(())
 /// }
 /// ```
-#[rustc_deprecated(
-    since = "1.1.0",
-    reason = "replaced with std::os::unix::fs::symlink and \
-              std::os::windows::fs::{symlink_file, symlink_dir}"
-)]
 pub fn soft_link<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Result<()> {
     fs_imp::symlink(original.as_ref(), link.as_ref())
 }
