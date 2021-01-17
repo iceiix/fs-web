@@ -343,34 +343,6 @@ impl File {
         OpenOptions::new().write(true).create(true).truncate(true).open(path.as_ref())
     }
 
-    /// Returns a new OpenOptions object.
-    ///
-    /// This function returns a new OpenOptions object that you can use to
-    /// open or create a file with specific options if `open()` or `create()`
-    /// are not appropriate.
-    ///
-    /// It is equivalent to `OpenOptions::new()` but allows you to write more
-    /// readable code. Instead of `OpenOptions::new().read(true).open("foo.txt")`
-    /// you can write `File::with_options().read(true).open("foo.txt")`. This
-    /// also avoids the need to import `OpenOptions`.
-    ///
-    /// See the [`OpenOptions::new`] function for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// #![feature(with_options)]
-    /// use std::fs::File;
-    ///
-    /// fn main() -> std::io::Result<()> {
-    ///     let mut f = File::with_options().read(true).open("foo.txt")?;
-    ///     Ok(())
-    /// }
-    /// ```
-    pub fn with_options() -> OpenOptions {
-        OpenOptions::new()
-    }
-
     /// Attempts to sync all OS-internal metadata to disk.
     ///
     /// This function will attempt to ensure that all in-memory data reaches the
