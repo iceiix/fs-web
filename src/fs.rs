@@ -10,7 +10,7 @@ mod tests;
 
 use std::ffi::OsString;
 use std::fmt;
-use std::io::{self, IoSlice, IoSliceMut, Read, Seek, SeekFrom, Write};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 //use std::sys::fs as fs_imp;
 use crate::unix_fs as fs_imp;
@@ -590,29 +590,10 @@ impl Read for File {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.inner.read(buf)
     }
-
-    fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        self.inner.read_vectored(bufs)
-    }
-
-    #[inline]
-    fn is_read_vectored(&self) -> bool {
-        self.inner.is_read_vectored()
-    }
-
 }
 impl Write for File {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.inner.write(buf)
-    }
-
-    fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
-        self.inner.write_vectored(bufs)
-    }
-
-    #[inline]
-    fn is_write_vectored(&self) -> bool {
-        self.inner.is_write_vectored()
     }
 
     fn flush(&mut self) -> io::Result<()> {
@@ -628,28 +609,10 @@ impl Read for &File {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.inner.read(buf)
     }
-
-    fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        self.inner.read_vectored(bufs)
-    }
-
-    #[inline]
-    fn is_read_vectored(&self) -> bool {
-        self.inner.is_read_vectored()
-    }
 }
 impl Write for &File {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.inner.write(buf)
-    }
-
-    fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
-        self.inner.write_vectored(bufs)
-    }
-
-    #[inline]
-    fn is_write_vectored(&self) -> bool {
-        self.inner.is_write_vectored()
     }
 
     fn flush(&mut self) -> io::Result<()> {
