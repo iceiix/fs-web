@@ -38,18 +38,39 @@ lazy_static! {
 
 impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
-        let mut dir = ROOT.lock().unwrap();
+        let mut dir = &*ROOT.lock().unwrap();
 
-        for component in path.components() {
+        let mut components: Vec<Component> = path.components().collect();
+        let file_name = components.pop().expect("open: no path components");
+        let file_name = match file_name {
+            Component::Normal(file_name) => file_name,
+            _ => return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("open: last path component {:?} is not Normal", file_name))),
+        }.to_str().expect(&format!("open: last path component {:?} not a valid String", file_name));
+
+        // Traverse directory hierarchy
+        for component in components {
             println!("component = {:?}", component);
             match component {
                 Component::Normal(name) => {
-                    if let Some(entry) = dir.find_entry(&name.to_str().expect(&format!("dir entry name {:?} not a valid String", name))) {
+                    if let Some(entry) = dir.find_entry(&name.to_str().expect(&format!("open: dir entry name {:?} not a valid String", name))) {
                         println!("entry = {:?}", entry);
+
+                        match entry {
+                            Entry::File{..} => {
+                                return Err(io::Error::new(
+                                    io::ErrorKind::NotFound,
+                                    format!("open: dir entry {:?} is a file not a directory", name)));
+                            },
+                            Entry::Dir{dir: next_dir} => {
+                                dir = next_dir;
+                            }
+                        }
                     } else {
                         return Err(io::Error::new(
                             io::ErrorKind::NotFound,
-                            format!("dir entry {:?} not found in dir {:?}", name, dir)));
+                            format!("open: dir entry {:?} not found in dir {:?}", name, dir)));
                     }
                 }
                 Component::RootDir => todo!(), //dir = ROOT.lock().unwrap().entry,
@@ -58,7 +79,20 @@ impl File {
                 Component::Prefix(_) => unimplemented!(),
             }
         }
-        Ok(File::default())
+
+        println!("opening {:?} in dir {:?}", file_name, dir);
+        let entry = dir.find_entry(&file_name);
+        println!("entry = {:?}", entry);
+
+        match entry {
+            Some(&Entry::File{ref file}) => todo!(), // Ok(*file), //TODO: must return a File not &File
+            Some(&Entry::Dir{..}) => Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("open: file is a directory: {:?}", file_name))),
+            None => Err(io::Error::new(
+                  io::ErrorKind::NotFound,
+                  format!("open: file {:?} not found in dir {:?}", file_name, dir))),
+        }
     }
 
     pub fn fsync(&self) -> io::Result<()> {
