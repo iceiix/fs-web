@@ -10,9 +10,10 @@ use std::sync::Mutex;
 use lazy_static::lazy_static;
 
 /// An open file
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct File {
-    // TODO: &DataFile
+    // TODO: io::cursor
+    data_file: Box<DataFile>,
 }
 
 // Private structures holding the actual filesystem data
@@ -28,11 +29,11 @@ struct Dir {
 
 impl Dir {
     /// Lookup a directory entry by name.
-    fn find_entry(&self, name: &str) -> Option<&Entry> {
+    fn find_entry(&mut self, name: &str) -> Option<&mut Entry> {
         // TODO: optimize lookup from O(n), hash
-        for entry in &self.entries {
+        for entry in &mut self.entries {
             if entry.name == name {
-                return Some(&entry.entry)
+                return Some(&mut entry.entry)
             }
         }
         None
@@ -57,7 +58,7 @@ lazy_static! {
 
 impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
-        let mut dir = &*ROOT.lock().unwrap();
+        let mut dir = &mut *ROOT.lock().unwrap();
 
         let mut components: Vec<Component> = path.components().collect();
         let file_name = components.pop().expect("open: no path components");
@@ -89,7 +90,7 @@ impl File {
                     } else {
                         return Err(io::Error::new(
                             io::ErrorKind::NotFound,
-                            format!("open: dir entry {:?} not found in dir {:?}", name, dir)));
+                            format!("open: dir entry {:?} not found in dir", name)));
                     }
                 }
                 Component::RootDir => todo!(), //dir = ROOT.lock().unwrap().entry,
@@ -100,12 +101,12 @@ impl File {
         }
 
         println!("opening {:?} in dir {:?}", file_name, dir);
-        let entry = dir.find_entry(&file_name);
+        let mut entry = dir.find_entry(&file_name);
         println!("entry = {:?}", entry);
 
         match entry {
-            Some(&Entry::File{ref file}) => todo!(), // Ok(*file), //TODO: must return a File not &File
-            Some(&Entry::Dir{..}) => Err(io::Error::new(
+            Some(&mut Entry::File{ref mut file}) => todo!(), //Ok(File { data_file: Box::new(file) }), // TODO: fix expected struct `DataFile`, found `&mut DataFile
+            Some(&mut Entry::Dir{..}) => Err(io::Error::new(
                 io::ErrorKind::NotFound,
                 format!("open: file is a directory: {:?}", file_name))),
             None => Err(io::Error::new(
