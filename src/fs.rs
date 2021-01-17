@@ -5,19 +5,20 @@
 //! operations. Extra platform-specific functionality can be found in the
 //! extension traits of `std::os::$platform`.
 
-#![stable(feature = "rust1", since = "1.0.0")]
-#![deny(unsafe_op_in_unsafe_fn)]
-
 #[cfg(all(test, not(any(target_os = "emscripten", target_env = "sgx"))))]
 mod tests;
 
-use crate::ffi::OsString;
-use crate::fmt;
-use crate::io::{self, Initializer, IoSlice, IoSliceMut, Read, Seek, SeekFrom, Write};
-use crate::path::{Path, PathBuf};
-use crate::sys::fs as fs_imp;
+use std::ffi::OsString;
+use std::fmt;
+use std::io::{self, Initializer, IoSlice, IoSliceMut, Read, Seek, SeekFrom, Write};
+use std::path::{Path, PathBuf};
+//use std::sys::fs as fs_imp;
+use crate::unix_fs as fs_imp;
+
+//use std::sys_common::{AsInner, AsInnerMut, FromInner, IntoInner};
 use crate::sys_common::{AsInner, AsInnerMut, FromInner, IntoInner};
-use crate::time::SystemTime;
+
+use std::time::SystemTime;
 
 /// A reference to an open file on the filesystem.
 ///
@@ -174,7 +175,7 @@ pub struct OpenOptions(fs_imp::OpenOptions);
 /// platforms. Unix-specific functionality, such as mode bits, is available
 /// through the [`PermissionsExt`] trait.
 ///
-/// [`PermissionsExt`]: crate::os::unix::fs::PermissionsExt
+/// [`PermissionsExt`]: std::os::unix::fs::PermissionsExt
 #[derive(Clone, PartialEq, Eq, Debug)]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct Permissions(fs_imp::FilePermissions);
@@ -1745,9 +1746,9 @@ pub fn hard_link<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Re
 /// and [`std::os::windows::fs::symlink_file`] or [`symlink_dir`] should be
 /// used instead to make the intent explicit.
 ///
-/// [`std::os::unix::fs::symlink`]: crate::os::unix::fs::symlink
-/// [`std::os::windows::fs::symlink_file`]: crate::os::windows::fs::symlink_file
-/// [`symlink_dir`]: crate::os::windows::fs::symlink_dir
+/// [`std::os::unix::fs::symlink`]: std::os::unix::fs::symlink
+/// [`std::os::windows::fs::symlink_file`]: std::os::windows::fs::symlink_file
+/// [`symlink_dir`]: std::os::windows::fs::symlink_dir
 ///
 /// # Examples
 ///
