@@ -2,7 +2,7 @@
 mod tests;
 
 use std::cmp;
-use std::io::{self, Initializer, IoSlice, IoSliceMut, Read};
+use std::io::{self, IoSlice, IoSliceMut, Read};
 use std::mem;
 use crate::cvt::cvt;
 use crate::sys_common::AsInner;
@@ -63,7 +63,7 @@ impl FileDesc {
     pub fn new(fd: c_int) -> FileDesc {
         assert_ne!(fd, -1i32);
         // SAFETY: we just asserted that the value is in the valid range and isn't `-1` (the only value bigger than `0xFF_FF_FF_FE` unsigned)
-        unsafe { FileDesc { fd } }
+        FileDesc { fd }
     }
 
     pub fn raw(&self) -> c_int {
@@ -269,11 +269,6 @@ impl FileDesc {
 impl<'a> Read for &'a FileDesc {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         (**self).read(buf)
-    }
-
-    #[inline]
-    unsafe fn initializer(&self) -> Initializer {
-        Initializer::nop()
     }
 }
 
