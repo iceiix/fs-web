@@ -1,10 +1,8 @@
-#![allow(dead_code)] // TODO: remove dead code, much isn't used
-
 use std::os::unix::prelude::*;
 
 use std::ffi::{CStr, CString, OsStr, OsString};
 use std::fmt;
-use std::io::{self, Error, ErrorKind, IoSlice, IoSliceMut, SeekFrom};
+use std::io::{self, Error, ErrorKind, SeekFrom};
 use std::mem;
 use std::path::{Path, PathBuf};
 use std::ptr;
@@ -123,6 +121,7 @@ impl FileAttr {
     }
 }
 
+#[allow(dead_code)] // TODO: maybe we can remove it..or implement it?
 impl FileAttr {
     pub fn modified(&self) -> io::Result<SystemTime> {
         Err(io::Error::new(
@@ -169,9 +168,6 @@ impl FilePermissions {
             // add write permission for all classes; equivalent to `chmod a+w <file>`
             self.mode |= 0o222;
         }
-    }
-    pub fn mode(&self) -> u32 {
-        self.mode as u32
     }
 }
 
@@ -276,10 +272,6 @@ impl DirEntry {
         }
     }
 
-    pub fn ino(&self) -> u64 {
-        self.entry.d_ino as u64
-    }
-
     fn name_bytes(&self) -> &[u8] {
         unsafe { CStr::from_ptr(self.entry.d_name.as_ptr()).to_bytes() }
     }
@@ -318,13 +310,6 @@ impl OpenOptions {
     }
     pub fn create_new(&mut self, create_new: bool) {
         self.create_new = create_new;
-    }
-
-    pub fn custom_flags(&mut self, flags: i32) {
-        self.custom_flags = flags;
-    }
-    pub fn mode(&mut self, mode: u32) {
-        self.mode = mode as mode_t;
     }
 
     fn get_access_mode(&self) -> io::Result<c_int> {
@@ -421,34 +406,8 @@ impl File {
         self.0.read(buf)
     }
 
-    pub fn read_vectored(&self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        self.0.read_vectored(bufs)
-    }
-
-    #[inline]
-    pub fn is_read_vectored(&self) -> bool {
-        self.0.is_read_vectored()
-    }
-
-    pub fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
-        self.0.read_at(buf, offset)
-    }
-
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         self.0.write(buf)
-    }
-
-    pub fn write_vectored(&self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
-        self.0.write_vectored(bufs)
-    }
-
-    #[inline]
-    pub fn is_write_vectored(&self) -> bool {
-        self.0.is_write_vectored()
-    }
-
-    pub fn write_at(&self, buf: &[u8], offset: u64) -> io::Result<usize> {
-        self.0.write_at(buf, offset)
     }
 
     pub fn flush(&self) -> io::Result<()> {
@@ -471,14 +430,6 @@ impl File {
         self.0.duplicate().map(File)
     }
 
-    pub fn fd(&self) -> &FileDesc {
-        &self.0
-    }
-
-    pub fn into_fd(self) -> FileDesc {
-        self.0
-    }
-
     pub fn set_permissions(&self, perm: FilePermissions) -> io::Result<()> {
         cvt_r(|| unsafe { libc::fchmod(self.0.raw(), perm.mode) })?;
         Ok(())
@@ -494,10 +445,6 @@ impl DirBuilder {
         let p = cstr(p)?;
         cvt(unsafe { libc::mkdir(p.as_ptr(), self.mode) })?;
         Ok(())
-    }
-
-    pub fn set_mode(&mut self, mode: u32) {
-        self.mode = mode as mode_t;
     }
 }
 
