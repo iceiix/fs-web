@@ -88,7 +88,6 @@ use std::time::SystemTime;
 ///
 /// [`BufReader<R>`]: io::BufReader
 /// [`sync_all`]: File::sync_all
-#[stable(feature = "rust1", since = "1.0.0")]
 pub struct File {
     inner: fs_imp::File,
 }
@@ -99,7 +98,6 @@ pub struct File {
 /// [`symlink_metadata`] function or method and represents known
 /// metadata about a file such as its permissions, size, modification
 /// times, etc.
-#[stable(feature = "rust1", since = "1.0.0")]
 #[derive(Clone)]
 pub struct Metadata(fs_imp::FileAttr);
 
@@ -117,7 +115,6 @@ pub struct Metadata(fs_imp::FileAttr);
 ///
 /// This [`io::Result`] will be an [`Err`] if there's some sort of intermittent
 /// IO error during iteration.
-#[stable(feature = "rust1", since = "1.0.0")]
 #[derive(Debug)]
 pub struct ReadDir(fs_imp::ReadDir);
 
@@ -126,7 +123,6 @@ pub struct ReadDir(fs_imp::ReadDir);
 /// An instance of `DirEntry` represents an entry inside of a directory on the
 /// filesystem. Each entry can be inspected via methods to learn about the full
 /// path or possibly other metadata through per-platform extension traits.
-#[stable(feature = "rust1", since = "1.0.0")]
 pub struct DirEntry(fs_imp::DirEntry);
 
 /// Options and flags which can be used to configure how a file is opened.
@@ -165,7 +161,6 @@ pub struct DirEntry(fs_imp::DirEntry);
 ///             .open("foo.txt");
 /// ```
 #[derive(Clone, Debug)]
-#[stable(feature = "rust1", since = "1.0.0")]
 pub struct OpenOptions(fs_imp::OpenOptions);
 
 /// Representation of the various permissions on a file.
@@ -177,19 +172,16 @@ pub struct OpenOptions(fs_imp::OpenOptions);
 ///
 /// [`PermissionsExt`]: std::os::unix::fs::PermissionsExt
 #[derive(Clone, PartialEq, Eq, Debug)]
-#[stable(feature = "rust1", since = "1.0.0")]
 pub struct Permissions(fs_imp::FilePermissions);
 
 /// A structure representing a type of file with accessors for each file type.
 /// It is returned by [`Metadata::file_type`] method.
-#[stable(feature = "file_type", since = "1.1.0")]
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub struct FileType(fs_imp::FileType);
 
 /// A builder used to create directories in various manners.
 ///
 /// This builder also supports platform-specific options.
-#[stable(feature = "dir_builder", since = "1.6.0")]
 #[derive(Debug)]
 pub struct DirBuilder {
     inner: fs_imp::DirBuilder,
@@ -232,7 +224,6 @@ fn initial_buffer_size(file: &File) -> usize {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "fs_read_write_bytes", since = "1.26.0")]
 pub fn read<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
     fn inner(path: &Path) -> io::Result<Vec<u8>> {
         let mut file = File::open(path)?;
@@ -272,7 +263,6 @@ pub fn read<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "fs_read_write", since = "1.26.0")]
 pub fn read_to_string<P: AsRef<Path>>(path: P) -> io::Result<String> {
     fn inner(path: &Path) -> io::Result<String> {
         let mut file = File::open(path)?;
@@ -304,7 +294,6 @@ pub fn read_to_string<P: AsRef<Path>>(path: P) -> io::Result<String> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "fs_read_write_bytes", since = "1.26.0")]
 pub fn write<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> io::Result<()> {
     fn inner(path: &Path, contents: &[u8]) -> io::Result<()> {
         File::create(path)?.write_all(contents)
@@ -332,7 +321,6 @@ impl File {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn open<P: AsRef<Path>>(path: P) -> io::Result<File> {
         OpenOptions::new().read(true).open(path.as_ref())
     }
@@ -354,7 +342,6 @@ impl File {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn create<P: AsRef<Path>>(path: P) -> io::Result<File> {
         OpenOptions::new().write(true).create(true).truncate(true).open(path.as_ref())
     }
@@ -383,7 +370,6 @@ impl File {
     ///     Ok(())
     /// }
     /// ```
-    #[unstable(feature = "with_options", issue = "65439")]
     pub fn with_options() -> OpenOptions {
         OpenOptions::new()
     }
@@ -411,7 +397,6 @@ impl File {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn sync_all(&self) -> io::Result<()> {
         self.inner.fsync()
     }
@@ -442,7 +427,6 @@ impl File {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn sync_data(&self) -> io::Result<()> {
         self.inner.datasync()
     }
@@ -479,7 +463,6 @@ impl File {
     ///
     /// Note that this method alters the content of the underlying file, even
     /// though it takes `&self` rather than `&mut self`.
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn set_len(&self, size: u64) -> io::Result<()> {
         self.inner.truncate(size)
     }
@@ -497,7 +480,6 @@ impl File {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn metadata(&self) -> io::Result<Metadata> {
         self.inner.file_attr().map(Metadata)
     }
@@ -541,7 +523,6 @@ impl File {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "file_try_clone", since = "1.9.0")]
     pub fn try_clone(&self) -> io::Result<File> {
         Ok(File { inner: self.inner.duplicate()? })
     }
@@ -578,7 +559,6 @@ impl File {
     ///
     /// Note that this method alters the permissions of the underlying file,
     /// even though it takes `&self` rather than `&mut self`.
-    #[stable(feature = "set_permissions_atomic", since = "1.16.0")]
     pub fn set_permissions(&self, perm: Permissions) -> io::Result<()> {
         self.inner.set_permissions(perm.0)
     }
@@ -600,14 +580,12 @@ impl IntoInner<fs_imp::File> for File {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl fmt::Debug for File {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.inner.fmt(f)
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl Read for File {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.inner.read(buf)
@@ -628,7 +606,6 @@ impl Read for File {
         unsafe { Initializer::nop() }
     }
 }
-#[stable(feature = "rust1", since = "1.0.0")]
 impl Write for File {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.inner.write(buf)
@@ -647,13 +624,11 @@ impl Write for File {
         self.inner.flush()
     }
 }
-#[stable(feature = "rust1", since = "1.0.0")]
 impl Seek for File {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         self.inner.seek(pos)
     }
 }
-#[stable(feature = "rust1", since = "1.0.0")]
 impl Read for &File {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.inner.read(buf)
@@ -674,7 +649,6 @@ impl Read for &File {
         unsafe { Initializer::nop() }
     }
 }
-#[stable(feature = "rust1", since = "1.0.0")]
 impl Write for &File {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.inner.write(buf)
@@ -693,7 +667,6 @@ impl Write for &File {
         self.inner.flush()
     }
 }
-#[stable(feature = "rust1", since = "1.0.0")]
 impl Seek for &File {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         self.inner.seek(pos)
@@ -713,7 +686,6 @@ impl OpenOptions {
     /// let mut options = OpenOptions::new();
     /// let file = options.read(true).open("foo.txt");
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn new() -> Self {
         OpenOptions(fs_imp::OpenOptions::new())
     }
@@ -730,7 +702,6 @@ impl OpenOptions {
     ///
     /// let file = OpenOptions::new().read(true).open("foo.txt");
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn read(&mut self, read: bool) -> &mut Self {
         self.0.read(read);
         self
@@ -751,7 +722,6 @@ impl OpenOptions {
     ///
     /// let file = OpenOptions::new().write(true).open("foo.txt");
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn write(&mut self, write: bool) -> &mut Self {
         self.0.write(write);
         self
@@ -796,7 +766,6 @@ impl OpenOptions {
     ///
     /// let file = OpenOptions::new().append(true).open("foo.txt");
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn append(&mut self, append: bool) -> &mut Self {
         self.0.append(append);
         self
@@ -816,7 +785,6 @@ impl OpenOptions {
     ///
     /// let file = OpenOptions::new().write(true).truncate(true).open("foo.txt");
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn truncate(&mut self, truncate: bool) -> &mut Self {
         self.0.truncate(truncate);
         self
@@ -834,7 +802,6 @@ impl OpenOptions {
     ///
     /// let file = OpenOptions::new().write(true).create(true).open("foo.txt");
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn create(&mut self, create: bool) -> &mut Self {
         self.0.create(create);
         self
@@ -867,7 +834,6 @@ impl OpenOptions {
     ///                              .create_new(true)
     ///                              .open("foo.txt");
     /// ```
-    #[stable(feature = "expand_open_options2", since = "1.9.0")]
     pub fn create_new(&mut self, create_new: bool) -> &mut Self {
         self.0.create_new(create_new);
         self
@@ -915,7 +881,6 @@ impl OpenOptions {
     /// [`NotFound`]: io::ErrorKind::NotFound
     /// [`Other`]: io::ErrorKind::Other
     /// [`PermissionDenied`]: io::ErrorKind::PermissionDenied
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn open<P: AsRef<Path>>(&self, path: P) -> io::Result<File> {
         self._open(path.as_ref())
     }
@@ -952,7 +917,6 @@ impl Metadata {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "file_type", since = "1.1.0")]
     pub fn file_type(&self) -> FileType {
         FileType(self.0.file_type())
     }
@@ -974,7 +938,6 @@ impl Metadata {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn is_dir(&self) -> bool {
         self.file_type().is_dir()
     }
@@ -1002,7 +965,6 @@ impl Metadata {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn is_file(&self) -> bool {
         self.file_type().is_file()
     }
@@ -1021,7 +983,6 @@ impl Metadata {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn len(&self) -> u64 {
         self.0.size()
     }
@@ -1040,7 +1001,6 @@ impl Metadata {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn permissions(&self) -> Permissions {
         Permissions(self.0.perm())
     }
@@ -1071,7 +1031,6 @@ impl Metadata {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "fs_time", since = "1.10.0")]
     pub fn modified(&self) -> io::Result<SystemTime> {
         self.0.modified().map(FromInner::from_inner)
     }
@@ -1106,7 +1065,6 @@ impl Metadata {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "fs_time", since = "1.10.0")]
     pub fn accessed(&self) -> io::Result<SystemTime> {
         self.0.accessed().map(FromInner::from_inner)
     }
@@ -1138,13 +1096,11 @@ impl Metadata {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "fs_time", since = "1.10.0")]
     pub fn created(&self) -> io::Result<SystemTime> {
         self.0.created().map(FromInner::from_inner)
     }
 }
 
-#[stable(feature = "std_debug", since = "1.16.0")]
 impl fmt::Debug for Metadata {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Metadata")
@@ -1187,7 +1143,6 @@ impl Permissions {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn readonly(&self) -> bool {
         self.0.readonly()
     }
@@ -1221,7 +1176,6 @@ impl Permissions {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn set_readonly(&mut self, readonly: bool) {
         self.0.set_readonly(readonly)
     }
@@ -1249,7 +1203,6 @@ impl FileType {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "file_type", since = "1.1.0")]
     pub fn is_dir(&self) -> bool {
         self.0.is_dir()
     }
@@ -1281,7 +1234,6 @@ impl FileType {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "file_type", since = "1.1.0")]
     pub fn is_file(&self) -> bool {
         self.0.is_file()
     }
@@ -1316,7 +1268,6 @@ impl FileType {
     ///     Ok(())
     /// }
     /// ```
-    #[stable(feature = "file_type", since = "1.1.0")]
     pub fn is_symlink(&self) -> bool {
         self.0.is_symlink()
     }
@@ -1340,7 +1291,6 @@ impl AsInner<fs_imp::FilePermissions> for Permissions {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl Iterator for ReadDir {
     type Item = io::Result<DirEntry>;
 
@@ -1378,7 +1328,6 @@ impl DirEntry {
     /// ```
     ///
     /// The exact text, of course, depends on what files you have in `.`.
-    #[stable(feature = "rust1", since = "1.0.0")]
     pub fn path(&self) -> PathBuf {
         self.0.path()
     }
@@ -1416,7 +1365,6 @@ impl DirEntry {
     ///     }
     /// }
     /// ```
-    #[stable(feature = "dir_entry_ext", since = "1.1.0")]
     pub fn metadata(&self) -> io::Result<Metadata> {
         self.0.metadata().map(Metadata)
     }
@@ -1451,7 +1399,6 @@ impl DirEntry {
     ///     }
     /// }
     /// ```
-    #[stable(feature = "dir_entry_ext", since = "1.1.0")]
     pub fn file_type(&self) -> io::Result<FileType> {
         self.0.file_type().map(FileType)
     }
@@ -1473,13 +1420,11 @@ impl DirEntry {
     ///     }
     /// }
     /// ```
-    #[stable(feature = "dir_entry_ext", since = "1.1.0")]
     pub fn file_name(&self) -> OsString {
         self.0.file_name()
     }
 }
 
-#[stable(feature = "dir_entry_debug", since = "1.13.0")]
 impl fmt::Debug for DirEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("DirEntry").field(&self.path()).finish()
@@ -1525,7 +1470,6 @@ impl AsInner<fs_imp::DirEntry> for DirEntry {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn remove_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     fs_imp::unlink(path.as_ref())
 }
@@ -1563,7 +1507,6 @@ pub fn remove_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn metadata<P: AsRef<Path>>(path: P) -> io::Result<Metadata> {
     fs_imp::stat(path.as_ref()).map(Metadata)
 }
@@ -1597,7 +1540,6 @@ pub fn metadata<P: AsRef<Path>>(path: P) -> io::Result<Metadata> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "symlink_metadata", since = "1.1.0")]
 pub fn symlink_metadata<P: AsRef<Path>>(path: P) -> io::Result<Metadata> {
     fs_imp::lstat(path.as_ref()).map(Metadata)
 }
@@ -1640,7 +1582,6 @@ pub fn symlink_metadata<P: AsRef<Path>>(path: P) -> io::Result<Metadata> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<()> {
     fs_imp::rename(from.as_ref(), to.as_ref())
 }
@@ -1692,7 +1633,6 @@ pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<()> 
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<u64> {
     fs_imp::copy(from.as_ref(), to.as_ref())
 }
@@ -1733,7 +1673,6 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<u64> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn hard_link<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Result<()> {
     fs_imp::link(original.as_ref(), link.as_ref())
 }
@@ -1760,7 +1699,6 @@ pub fn hard_link<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Re
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 #[rustc_deprecated(
     since = "1.1.0",
     reason = "replaced with std::os::unix::fs::symlink and \
@@ -1799,7 +1737,6 @@ pub fn soft_link<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Re
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn read_link<P: AsRef<Path>>(path: P) -> io::Result<PathBuf> {
     fs_imp::readlink(path.as_ref())
 }
@@ -1840,7 +1777,6 @@ pub fn read_link<P: AsRef<Path>>(path: P) -> io::Result<PathBuf> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "fs_canonicalize", since = "1.5.0")]
 pub fn canonicalize<P: AsRef<Path>>(path: P) -> io::Result<PathBuf> {
     fs_imp::canonicalize(path.as_ref())
 }
@@ -1880,7 +1816,6 @@ pub fn canonicalize<P: AsRef<Path>>(path: P) -> io::Result<PathBuf> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn create_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
     DirBuilder::new().create(path.as_ref())
 }
@@ -1924,7 +1859,6 @@ pub fn create_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn create_dir_all<P: AsRef<Path>>(path: P) -> io::Result<()> {
     DirBuilder::new().recursive(true).create(path.as_ref())
 }
@@ -1959,7 +1893,6 @@ pub fn create_dir_all<P: AsRef<Path>>(path: P) -> io::Result<()> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn remove_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
     fs_imp::rmdir(path.as_ref())
 }
@@ -1996,7 +1929,6 @@ pub fn remove_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> io::Result<()> {
     fs_imp::remove_dir_all(path.as_ref())
 }
@@ -2069,7 +2001,6 @@ pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> io::Result<()> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "rust1", since = "1.0.0")]
 pub fn read_dir<P: AsRef<Path>>(path: P) -> io::Result<ReadDir> {
     fs_imp::readdir(path.as_ref()).map(ReadDir)
 }
@@ -2104,7 +2035,6 @@ pub fn read_dir<P: AsRef<Path>>(path: P) -> io::Result<ReadDir> {
 ///     Ok(())
 /// }
 /// ```
-#[stable(feature = "set_permissions", since = "1.1.0")]
 pub fn set_permissions<P: AsRef<Path>>(path: P, perm: Permissions) -> io::Result<()> {
     fs_imp::set_perm(path.as_ref(), perm.0)
 }
@@ -2120,7 +2050,6 @@ impl DirBuilder {
     ///
     /// let builder = DirBuilder::new();
     /// ```
-    #[stable(feature = "dir_builder", since = "1.6.0")]
     pub fn new() -> DirBuilder {
         DirBuilder { inner: fs_imp::DirBuilder::new(), recursive: false }
     }
@@ -2139,7 +2068,6 @@ impl DirBuilder {
     /// let mut builder = DirBuilder::new();
     /// builder.recursive(true);
     /// ```
-    #[stable(feature = "dir_builder", since = "1.6.0")]
     pub fn recursive(&mut self, recursive: bool) -> &mut Self {
         self.recursive = recursive;
         self
@@ -2163,7 +2091,6 @@ impl DirBuilder {
     ///
     /// assert!(fs::metadata(path).unwrap().is_dir());
     /// ```
-    #[stable(feature = "dir_builder", since = "1.6.0")]
     pub fn create<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
         self._create(path.as_ref())
     }
