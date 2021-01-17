@@ -984,7 +984,11 @@ impl Metadata {
     /// }
     /// ```
     pub fn modified(&self) -> io::Result<SystemTime> {
-        self.0.modified().map(FromInner::from_inner)
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "modified time is not available on this platform \
+                            currently",
+        ))
     }
 
     /// Returns the last access time of this metadata.
@@ -1018,7 +1022,11 @@ impl Metadata {
     /// }
     /// ```
     pub fn accessed(&self) -> io::Result<SystemTime> {
-        self.0.accessed().map(FromInner::from_inner)
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "accessed time is not available on this platform \
+                            currently",
+        ))
     }
 
     /// Returns the creation time listed in this metadata.
@@ -1049,7 +1057,11 @@ impl Metadata {
     /// }
     /// ```
     pub fn created(&self) -> io::Result<SystemTime> {
-        self.0.created().map(FromInner::from_inner)
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "creation time is not available on this platform \
+                            currently",
+        ))
     }
 }
 

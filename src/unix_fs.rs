@@ -126,7 +126,6 @@ impl FileAttr {
             "modified time is not available on this platform \
                             currently",
         ))
-
     }
 
     pub fn accessed(&self) -> io::Result<SystemTime> {
