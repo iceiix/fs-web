@@ -1,6 +1,3 @@
-#[cfg(test)]
-mod tests;
-
 use std::cmp;
 use std::io::{self, IoSlice, IoSliceMut, Read};
 use std::mem;
