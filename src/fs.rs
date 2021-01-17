@@ -1,16 +1,16 @@
-use crate::os::unix::prelude::*;
+use std::os::unix::prelude::*;
 
-use crate::ffi::{CStr, CString, OsStr, OsString};
-use crate::fmt;
-use crate::io::{self, Error, ErrorKind, IoSlice, IoSliceMut, SeekFrom};
-use crate::mem;
-use crate::path::{Path, PathBuf};
-use crate::ptr;
-use crate::sync::Arc;
-use crate::sys::fd::FileDesc;
-use crate::sys::time::SystemTime;
-use crate::sys::{cvt, cvt_r};
-use crate::sys_common::{AsInner, FromInner};
+use std::ffi::{CStr, CString, OsStr, OsString};
+use std::fmt;
+use std::io::{self, Error, ErrorKind, IoSlice, IoSliceMut, SeekFrom};
+use std::mem;
+use std::path::{Path, PathBuf};
+use std::ptr;
+use std::sync::Arc;
+use std::sys::fd::FileDesc;
+use std::sys::time::SystemTime;
+use std::sys::{cvt, cvt_r};
+use std::sys_common::{AsInner, FromInner};
 
 use libc::{c_int, mode_t};
 
@@ -48,7 +48,7 @@ use libc::{
     dirent64, fstat64, ftruncate64, lseek64, lstat64, off64_t, open64, readdir64_r, stat64,
 };
 
-pub use crate::sys_common::fs::remove_dir_all;
+pub use std::sys_common::fs::remove_dir_all;
 
 pub struct File(FileDesc);
 
@@ -96,7 +96,7 @@ cfg_has_statx! {{
         flags: i32,
         mask: u32,
     ) -> Option<io::Result<FileAttr>> {
-        use crate::sync::atomic::{AtomicU8, Ordering};
+        use std::sync::atomic::{AtomicU8, Ordering};
 
         // Linux kernel prior to 4.11 or glibc prior to glibc 2.28 don't support `statx`
         // We store the availability in global to avoid unnecessary syscalls.
@@ -439,7 +439,7 @@ impl Iterator for ReadDir {
         target_os = "illumos"
     ))]
     fn next(&mut self) -> Option<io::Result<DirEntry>> {
-        use crate::slice;
+        use std::slice;
 
         unsafe {
             loop {
@@ -619,7 +619,7 @@ impl DirEntry {
         target_os = "dragonfly"
     ))]
     fn name_bytes(&self) -> &[u8] {
-        use crate::slice;
+        use std::slice;
         unsafe {
             slice::from_raw_parts(
                 self.entry.d_name.as_ptr() as *const u8,
@@ -813,11 +813,11 @@ impl File {
 
     pub fn truncate(&self, size: u64) -> io::Result<()> {
         #[cfg(target_os = "android")]
-        return crate::sys::android::ftruncate64(self.0.raw(), size);
+        return std::sys::android::ftruncate64(self.0.raw(), size);
 
         #[cfg(not(target_os = "android"))]
         {
-            use crate::convert::TryInto;
+            use std::convert::TryInto;
             let size: off64_t =
                 size.try_into().map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
             cvt_r(|| unsafe { ftruncate64(self.0.raw(), size) }).map(drop)
@@ -1150,8 +1150,8 @@ pub fn canonicalize(p: &Path) -> io::Result<PathBuf> {
     Ok(PathBuf::from(OsString::from_vec(buf)))
 }
 
-fn open_from(from: &Path) -> io::Result<(crate::fs::File, crate::fs::Metadata)> {
-    use crate::fs::File;
+fn open_from(from: &Path) -> io::Result<(std::fs::File, std::fs::Metadata)> {
+    use std::fs::File;
 
     let reader = File::open(from)?;
     let metadata = reader.metadata()?;
@@ -1166,10 +1166,10 @@ fn open_from(from: &Path) -> io::Result<(crate::fs::File, crate::fs::Metadata)> 
 
 fn open_to_and_set_permissions(
     to: &Path,
-    reader_metadata: crate::fs::Metadata,
-) -> io::Result<(crate::fs::File, crate::fs::Metadata)> {
-    use crate::fs::OpenOptions;
-    use crate::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+    reader_metadata: std::fs::Metadata,
+) -> io::Result<(std::fs::File, std::fs::Metadata)> {
+    use std::fs::OpenOptions;
+    use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 
     let perm = reader_metadata.permissions();
     let writer = OpenOptions::new()
@@ -1222,7 +1222,7 @@ pub fn copy(from: &Path, to: &Path) -> io::Result<u64> {
 
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 pub fn copy(from: &Path, to: &Path) -> io::Result<u64> {
-    use crate::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicBool, Ordering};
 
     const COPYFILE_ACL: u32 = 1 << 0;
     const COPYFILE_STAT: u32 = 1 << 1;
@@ -1311,7 +1311,7 @@ pub fn copy(from: &Path, to: &Path) -> io::Result<u64> {
     let state = unsafe {
         let state = copyfile_state_alloc();
         if state.is_null() {
-            return Err(crate::io::Error::last_os_error());
+            return Err(std::io::Error::last_os_error());
         }
         FreeOnDrop(state)
     };
