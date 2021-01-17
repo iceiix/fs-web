@@ -1,3 +1,4 @@
+// https://github.com/rust-lang/rust/blob/master/library/std/src/fs.rs
 //! Filesystem manipulation operations.
 //!
 //! This module contains basic methods to manipulate the contents of the local
