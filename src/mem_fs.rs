@@ -6,6 +6,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf, Component};
 use std::io::{self, SeekFrom};
 use std::sync::Mutex;
+use std::cell::RefCell;
 
 use lazy_static::lazy_static;
 
@@ -46,9 +47,9 @@ lazy_static! {
             DirEntry {
                 name: "hello.txt".to_string(),
                 entry: Entry::File {
-                    file: DataFile {
+                    file: RefCell::new(DataFile {
                         data: vec![41, 42, 43],
-                    }
+                    })
                 }
             }
         // TODO: more static entries with include_bytes!()
@@ -105,7 +106,10 @@ impl File {
         println!("entry = {:?}", entry);
 
         match entry {
-            Some(&mut Entry::File{ref mut file}) => todo!(), //Ok(File { data_file: Box::new(file) }), // TODO: fix expected struct `DataFile`, found `&mut DataFile
+            Some(&mut Entry::File{ref mut file}) => {
+                println!("file = {:?}", file);
+                todo!(); //Ok(File { data_file: Box::new(file) }), // TODO: fix expected struct `DataFile`, found `&mut DataFile
+            },
             Some(&mut Entry::Dir{..}) => Err(io::Error::new(
                 io::ErrorKind::NotFound,
                 format!("open: file is a directory: {:?}", file_name))),
@@ -187,7 +191,7 @@ pub struct DirEntry {
 #[derive(Debug)]
 enum Entry {
     File {
-        file: DataFile,
+        file: RefCell<DataFile>,
     },
     Dir {
         dir: Dir,
@@ -202,7 +206,7 @@ impl DirEntry {
     pub fn metadata(&self) -> io::Result<FileAttr> {
         Ok(match &self.entry {
             Entry::File{file, ..} => FileAttr {
-                size: file.data.len() as u64,
+                size: file.borrow().data.len() as u64,
                 ty: FileType::File,
             },
             Entry::Dir{dir, ..} => FileAttr {
