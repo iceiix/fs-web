@@ -27,7 +27,7 @@ impl File {
     }
 
     pub fn file_attr(&self) -> io::Result<FileAttr> {
-        Ok(FileAttr{})
+        Ok(FileAttr { size: 0, ty: FileType::PlainFile })
     }
 
     pub fn duplicate(&self) -> io::Result<File> {
@@ -58,11 +58,14 @@ impl File {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
-pub struct FileAttr {}
+pub struct FileAttr {
+    size: u64,
+    ty: FileType,
+}
 
 impl FileAttr {
     pub fn size(&self) -> u64 {
-        0
+        self.size
     }
 
     pub fn perm(&self) -> FilePermissions {
@@ -70,7 +73,7 @@ impl FileAttr {
     }
 
     pub fn file_type(&self) -> FileType {
-        FileType{}
+        self.ty
     }
 }
 
@@ -83,7 +86,7 @@ impl DirEntry {
     }
 
     pub fn metadata(&self) -> io::Result<FileAttr> {
-        Ok(FileAttr{})
+        Ok(FileAttr { size: 0, ty: FileType::PlainFile })
     }
 
     pub fn file_name(&self) -> OsString {
@@ -91,7 +94,7 @@ impl DirEntry {
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
-        Ok(FileType{})
+        Ok(FileType::PlainFile)
     }
 }
 
@@ -151,15 +154,26 @@ impl FilePermissions {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
-pub struct FileType {}
+pub enum FileType {
+    PlainFile,
+    Directory,
+}
 
 impl FileType {
     pub fn is_dir(&self) -> bool {
-        false
+        match self {
+            FileType::Directory => true,
+            _ => false,
+        }
     }
+
     pub fn is_file(&self) -> bool {
-        false
+        match self {
+            FileType::PlainFile => true,
+            _ => false,
+        }
     }
+
     pub fn is_symlink(&self) -> bool {
         false
     }
@@ -194,11 +208,11 @@ pub fn unlink(p: &Path) -> io::Result<()> {
 }
 
 pub fn stat(p: &Path) -> io::Result<FileAttr> {
-    Ok(FileAttr{})
+    Ok(FileAttr { size: 0, ty: FileType::PlainFile })
 }
 
 pub fn lstat(p: &Path) -> io::Result<FileAttr> {
-    Ok(FileAttr{})
+    Ok(FileAttr { size: 0, ty: FileType::PlainFile })
 }
 
 pub fn rename(old: &Path, new: &Path) -> io::Result<()> {
