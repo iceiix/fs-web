@@ -6,15 +6,15 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf, Component};
 use std::io::{self, SeekFrom};
 use std::sync::Mutex;
-use std::cell::{RefCell, RefMut};
+use std::cell::RefCell;
 
 use lazy_static::lazy_static;
 
 /// An open file
 #[derive(Debug)]
-pub struct File<'a> {
+pub struct File {
     // TODO: io::cursor
-    data_file: RefMut<'a, DataFile>,
+    data_file: Box<DataFile>,
 }
 
 // Private structures holding the actual filesystem data
@@ -108,7 +108,7 @@ impl File {
         match entry {
             Some(&mut Entry::File{ref mut file}) => {
                 println!("file = {:?}", file);
-                Ok(File { data_file: file.borrow_mut() })
+                todo!(); //Ok(File { data_file: Box::new(file) }), // TODO: fix expected struct `DataFile`, found `&mut DataFile
             },
             Some(&mut Entry::Dir{..}) => Err(io::Error::new(
                 io::ErrorKind::NotFound,
