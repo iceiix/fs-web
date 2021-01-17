@@ -3,11 +3,11 @@
 #[cfg(test)]
 mod tests;
 
-use crate::cmp;
-use crate::io::{self, Initializer, IoSlice, IoSliceMut, Read};
-use crate::mem;
-use crate::sys::cvt;
-use crate::sys_common::AsInner;
+use std::cmp;
+use std::io::{self, Initializer, IoSlice, IoSliceMut, Read};
+use std::mem;
+use std::sys::cvt;
+use std::sys_common::AsInner;
 
 use libc::{c_int, c_void};
 
