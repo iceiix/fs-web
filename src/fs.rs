@@ -11,7 +11,9 @@ use std::fmt;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 //use std::sys::fs as fs_imp;
-use crate::unix_fs as fs_imp;
+
+//use crate::unix_fs as fs_imp;
+use crate::nop_fs as fs_imp;
 
 //use std::sys_common::{AsInner, AsInnerMut, FromInner, IntoInner};
 use crate::sys_common::{AsInner, AsInnerMut, FromInner, IntoInner};

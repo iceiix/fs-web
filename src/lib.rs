@@ -1,5 +1,6 @@
 pub mod fs;
 mod unix_fs;
+mod nop_fs;
 mod sys_common;
 mod fd;
 mod cvt;

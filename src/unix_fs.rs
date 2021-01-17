@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // https://github.com/rust-lang/rust/blob/master/library/std/src/sys/unix/fs.rs
 use std::os::unix::prelude::*;
 
@@ -61,17 +62,6 @@ unsafe impl Sync for Dir {}
 pub struct DirEntry {
     entry: dirent64,
     dir: Arc<InnerReadDir>,
-    // We need to store an owned copy of the entry name
-    // on Solaris and Fuchsia because a) it uses a zero-length
-    // array to store the name, b) its lifetime between readdir
-    // calls is not guaranteed.
-    #[cfg(any(
-        target_os = "solaris",
-        target_os = "illumos",
-        target_os = "fuchsia",
-        target_os = "redox"
-    ))]
-    name: Box<[u8]>,
 }
 
 #[derive(Clone, Debug)]
