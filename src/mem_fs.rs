@@ -3,8 +3,11 @@
 // based on https://github.com/rust-lang/rust/blob/master/library/std/src/sys/unix/fs.rs
 
 use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::path::{Path, PathBuf, Component};
 use std::io::{self, SeekFrom};
+use std::sync::Mutex;
+
+use lazy_static::lazy_static;
 
 #[derive(Debug, Default)]
 pub struct File {
@@ -16,8 +19,45 @@ struct Dir {
     entries: Vec<DirEntry>,
 }
 
+impl Dir {
+    /// Lookup a directory entry by name.
+    fn find_entry(&self, name: &str) -> Option<&Entry> {
+        // TODO: optimize lookup from O(n), hash
+        for entry in &self.entries {
+            if entry.name == name {
+                return Some(&entry.entry)
+            }
+        }
+        None
+    }
+}
+
+lazy_static! {
+    static ref ROOT: Mutex<Dir> = Mutex::new(Dir { entries: vec![] });
+}
+
 impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
+        let mut dir = ROOT.lock().unwrap();
+
+        for component in path.components() {
+            println!("component = {:?}", component);
+            match component {
+                Component::Normal(name) => {
+                    if let Some(entry) = dir.find_entry(&name.to_str().expect(&format!("dir entry name {:?} not a valid String", name))) {
+                        println!("entry = {:?}", entry);
+                    } else {
+                        return Err(io::Error::new(
+                            io::ErrorKind::NotFound,
+                            format!("dir entry {:?} not found in dir {:?}", name, dir)));
+                    }
+                }
+                Component::RootDir => todo!(), //dir = ROOT.lock().unwrap().entry,
+                Component::CurDir => (),
+                Component::ParentDir => todo!(),
+                Component::Prefix(_) => unimplemented!(),
+            }
+        }
         Ok(File::default())
     }
 
