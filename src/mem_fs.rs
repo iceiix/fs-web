@@ -11,6 +11,11 @@ pub struct File {
     data: Vec<u8>,
 }
 
+#[derive(Debug)]
+struct Directory {
+    entries: Vec<DirEntry>,
+}
+
 impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
         Ok(File::default())
@@ -79,10 +84,16 @@ impl FileAttr {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct DirEntry {
-    name: String,
-    attr: FileAttr,
+#[derive(Debug)]
+pub enum DirEntry {
+    File {
+        name: String,
+        file: File,
+    },
+    Directory {
+        name: String,
+        directory: Directory,
+    }
 }
 
 impl DirEntry {
@@ -91,15 +102,30 @@ impl DirEntry {
     }
 
     pub fn metadata(&self) -> io::Result<FileAttr> {
-        Ok(self.attr)
+        Ok(match self {
+            DirEntry::File{file, ..} => FileAttr {
+                size: file.data.len() as u64,
+                ty: FileType::PlainFile,
+            },
+            DirEntry::Directory{directory, ..} => FileAttr {
+                size: 0,
+                ty: FileType::Directory,
+            },
+        })
     }
 
     pub fn file_name(&self) -> OsString {
-        From::from(&self.name)
+        match self {
+            DirEntry::File{name, ..} => From::from(&name),
+            DirEntry::Directory{name, ..} => From::from(&name),
+        }
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
-        Ok(self.attr.file_type())
+        Ok(match self {
+            DirEntry::File{..} => FileType::PlainFile,
+            DirEntry::Directory{..} => FileType::Directory,
+        })
     }
 }
 
