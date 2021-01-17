@@ -1,4 +1,4 @@
-#![allow(unused_variables, dead_code)]
+#![allow(unused_variables)]
 // no-operation filesystem implementation
 // based on https://github.com/rust-lang/rust/blob/master/library/std/src/sys/unix/fs.rs
 
