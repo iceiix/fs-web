@@ -18,6 +18,12 @@ lazy_static! {
     };
 }
 
+fn get_file_data(path: &Path) -> Option<&Vec<u8>> {
+    let path_str = path.to_str().expect("path is not a valid OsString");
+
+    FILE_DATA.get(path_str)
+}
+
 #[derive(Debug)]
 pub struct File {
     cursor: RefCell<Cursor<Vec<u8>>>,
@@ -27,9 +33,7 @@ impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
         println!("open {:?}", path);
 
-        let path_str = path.to_str().expect("path is not a valid OsString");
-
-        if let Some(data) = FILE_DATA.get(path_str) {
+        if let Some(data) = get_file_data(path) {
             let cursor = Cursor::new(data.to_vec());
             Ok(File{ cursor: RefCell::new(cursor) })
         } else {
@@ -52,7 +56,7 @@ impl File {
     }
 
     pub fn file_attr(&self) -> io::Result<FileAttr> {
-        Ok(FileAttr{})
+        Ok(FileAttr { size: 0, ty: FileType::File })
     }
 
     pub fn duplicate(&self) -> io::Result<File> {
@@ -83,11 +87,14 @@ impl File {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
-pub struct FileAttr {}
+pub struct FileAttr {
+    size: u64,
+    ty: FileType,
+}
 
 impl FileAttr {
     pub fn size(&self) -> u64 {
-        0
+        self.size
     }
 
     pub fn perm(&self) -> FilePermissions {
@@ -95,7 +102,7 @@ impl FileAttr {
     }
 
     pub fn file_type(&self) -> FileType {
-        FileType{}
+        self.ty
     }
 }
 
@@ -108,7 +115,7 @@ impl DirEntry {
     }
 
     pub fn metadata(&self) -> io::Result<FileAttr> {
-        Ok(FileAttr{})
+        Ok(FileAttr { size: 0, ty: FileType::File })
     }
 
     pub fn file_name(&self) -> OsString {
@@ -116,7 +123,7 @@ impl DirEntry {
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
-        Ok(FileType{})
+        Ok(FileType::Dir)
     }
 }
 
@@ -176,19 +183,31 @@ impl FilePermissions {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
-pub struct FileType {}
+pub enum FileType {
+    File,
+    Dir,
+}
 
 impl FileType {
     pub fn is_dir(&self) -> bool {
-        false
+        match self {
+            FileType::Dir => true,
+            _ => false,
+        }
     }
+
     pub fn is_file(&self) -> bool {
-        false
+        match self {
+            FileType::File => true,
+            _ => false,
+        }
     }
+
     pub fn is_symlink(&self) -> bool {
         false
     }
 }
+
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub struct DirBuilder {}
@@ -219,11 +238,11 @@ pub fn unlink(p: &Path) -> io::Result<()> {
 }
 
 pub fn stat(p: &Path) -> io::Result<FileAttr> {
-    Ok(FileAttr{})
+    Ok(FileAttr { size: 0, ty: FileType::File })
 }
 
 pub fn lstat(p: &Path) -> io::Result<FileAttr> {
-    Ok(FileAttr{})
+    stat(p)
 }
 
 pub fn rename(old: &Path, new: &Path) -> io::Result<()> {
