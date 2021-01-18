@@ -6,7 +6,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf, Component};
 use std::io::{self, SeekFrom};
 use std::sync::Mutex;
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 
 use lazy_static::lazy_static;
 
@@ -45,7 +45,7 @@ lazy_static! {
     static ref ROOT: Mutex<Dir> = Mutex::new(Dir {
         entries: vec![
             DirEntry {
-                name: "hello.txt".to_string(),
+                name: "abc.txt".to_string(),
                 entry: Entry::File {
                     file: RefCell::new(DataFile {
                         data: vec![41, 42, 43],
@@ -102,20 +102,39 @@ impl File {
         }
 
         println!("opening {:?} in dir {:?}", file_name, dir);
-        let mut entry = dir.find_entry(&file_name);
+        let entry = dir.find_entry(&file_name);
         println!("entry = {:?}", entry);
 
         match entry {
             Some(&mut Entry::File{ref mut file}) => {
                 println!("file = {:?}", file);
+
+                if opts.create_new {
+                    return Err(io::Error::new(
+                       io::ErrorKind::PermissionDenied,
+                      format!("open: create_new set but file exists: {:?}", file_name)));
+                }
+
                 todo!(); //Ok(File { data_file: Box::new(file) }), // TODO: fix expected struct `DataFile`, found `&mut DataFile
             },
             Some(&mut Entry::Dir{..}) => Err(io::Error::new(
                 io::ErrorKind::NotFound,
                 format!("open: file is a directory: {:?}", file_name))),
-            None => Err(io::Error::new(
-                  io::ErrorKind::NotFound,
-                  format!("open: file {:?} not found in dir {:?}", file_name, dir))),
+            None => {
+                if !opts.create {
+                    return Err(io::Error::new(
+                      io::ErrorKind::NotFound,
+                      format!("open: file {:?} not found in dir {:?}", file_name, dir)))
+                }
+
+                let data_file = RefCell::new(DataFile { data: vec![] });
+                dir.entries.push(DirEntry {
+                    name: file_name.to_string(),
+                    entry: Entry::File { file: data_file },
+                });
+
+                todo!() //Ok(File { data_file: Box::new(data_file.borrow_mut()) }) // TODO: fix expected struct `DataFile`, found struct `RefMut
+            },
         }
     }
 
