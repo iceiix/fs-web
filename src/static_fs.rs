@@ -6,6 +6,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::io::{self, SeekFrom, Cursor, Read, Write};
 use std::collections::HashMap;
+use std::cell::RefCell;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -19,7 +20,7 @@ lazy_static! {
 
 #[derive(Debug)]
 pub struct File {
-    cursor: Cursor<Vec<u8>>,
+    cursor: RefCell<Cursor<Vec<u8>>>,
 }
 
 impl File {
@@ -30,7 +31,7 @@ impl File {
 
         if let Some(data) = FILE_DATA.get(path_str) {
             let cursor = Cursor::new(data.to_vec());
-            Ok(File{ cursor })
+            Ok(File{ cursor: RefCell::new(cursor) })
         } else {
             Err(io::Error::new(
                 io::ErrorKind::NotFound,
@@ -65,7 +66,7 @@ impl File {
     }
 
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
-        self.cursor.read(buf)
+        self.cursor.borrow_mut().read(buf)
     }
 
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
