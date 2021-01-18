@@ -15,7 +15,13 @@ use lazy_static::lazy_static;
 /// An open file
 #[derive(Debug)]
 pub struct File {
-    cursor: Cursor<Vec<u8>>,
+    open_index: usize, // index into OPEN_FILES -> OpenFile
+}
+
+#[derive(Debug)]
+struct OpenFile<'a> {
+    //TODO cursor: Cursor<Vec<u8>>,
+    data_file: &'a mut DataFile,
 }
 
 // Private structures holding the actual filesystem data
@@ -48,14 +54,16 @@ lazy_static! {
             DirEntry {
                 name: "hello.txt".to_string(),
                 entry: Entry::File {
-                    file: Arc::new(RwLock::new(DataFile {
+                    file: DataFile {
                         data: vec![41, 42, 43],
-                    }))
+                    }
                 }
             }
         // TODO: more static entries with include_bytes!()
         ]
     });
+
+    static ref OPEN_FILES: Mutex<Vec<OpenFile<'static>>> = Mutex::new(vec![]);
 }
 
 impl File {
@@ -116,7 +124,18 @@ impl File {
                       format!("open: create_new set but file exists: {:?}", file_name)));
                 }
 
-                todo!(); //Ok(File { data_file: Box::new(file) }), // TODO: fix expected struct `DataFile`, found `&mut DataFile
+                /* TODO: temporary value dropped while borrowed
+                let open_file = OpenFile {
+                    data_file: &mut file,
+                };
+
+                let mut open_files = &mut *OPEN_FILES.lock().unwrap();
+                open_files.push(open_file);
+                let open_index = open_files.len();
+
+                Ok(File { open_index })
+                */
+                todo!()
             },
             Some(&mut Entry::Dir{..}) => Err(io::Error::new(
                 io::ErrorKind::NotFound,
@@ -125,14 +144,16 @@ impl File {
                 if !opts.create {
                     return Err(io::Error::new(
                       io::ErrorKind::NotFound,
-                      format!("open: file {:?} not found in dir {:?}", file_name, dir)))
+                      format!("open: file {:?} not found in dir", file_name)))
                 }
 
-                let data_file = Arc::new(RwLock::new(DataFile { data: vec![] }));
+                let data_file = DataFile { data: vec![] };
+                /* TODO
                 dir.entries.push(DirEntry {
                     name: file_name.to_string(),
                     entry: Entry::File { file: data_file },
                 });
+                */
 
                 //Ok(File { data_file: Box::new(data_file.borrow_mut()) }) // TODO: fix expected struct `DataFile`, found struct `RefMut
                 //let x = Ok(File { cursor: Cursor::new((*data_file.write().unwrap().data).to_vec()) }); x // TODO: fix borrow of moved value: `data_file`
@@ -213,7 +234,7 @@ pub struct DirEntry {
 #[derive(Debug)]
 enum Entry {
     File {
-        file: Arc<RwLock<DataFile>>,
+        file: DataFile,
     },
     Dir {
         dir: Dir,
@@ -228,7 +249,7 @@ impl DirEntry {
     pub fn metadata(&self) -> io::Result<FileAttr> {
         Ok(match &self.entry {
             Entry::File{file, ..} => FileAttr {
-                size: file.read().unwrap().data.len() as u64,
+                size: file.data.len() as u64,
                 ty: FileType::File,
             },
             Entry::Dir{dir, ..} => FileAttr {
