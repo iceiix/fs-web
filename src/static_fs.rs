@@ -4,14 +4,38 @@
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::io::{self, SeekFrom};
+use std::io::{self, SeekFrom, Cursor};
+use std::collections::HashMap;
+use lazy_static::lazy_static;
 
-#[derive(Copy, Clone, Debug)]
-pub struct File {}
+lazy_static! {
+    static ref FILE_DATA: HashMap<&'static str, Vec<u8>> = {
+        let mut m = HashMap::new();
+        m.insert("abc.txt", vec![41, 42, 43]);
+        m.insert("hello.txt", include_bytes!("hello.txt").to_vec());
+        m
+    };
+}
+
+#[derive(Debug)]
+pub struct File {
+    cursor: Cursor<Vec<u8>>,
+}
 
 impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
-        Ok(File{})
+        println!("open {:?}", path);
+
+        let path_str = path.to_str().expect("path is not a valid OsString");
+
+        if let Some(data) = FILE_DATA.get(path_str) {
+            let cursor = Cursor::new(data.to_vec());
+            Ok(File{ cursor })
+        } else {
+            Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "file not found"))
+        }
     }
 
     pub fn fsync(&self) -> io::Result<()> {
@@ -31,7 +55,9 @@ impl File {
     }
 
     pub fn duplicate(&self) -> io::Result<File> {
-        Ok(*self)
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "duplicate is not available on this platform"))
     }
 
     pub fn set_permissions(&self, perm: FilePermissions) -> io::Result<()> {

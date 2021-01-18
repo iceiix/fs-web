@@ -2,6 +2,7 @@ pub mod fs;
 mod unix_fs;
 mod nop_fs;
 mod mem_fs;
+mod static_fs;
 mod sys_common;
 mod fd;
 mod cvt;

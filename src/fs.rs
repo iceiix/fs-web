@@ -14,7 +14,8 @@ use std::path::{Path, PathBuf};
 
 //use crate::unix_fs as fs_imp;
 //use crate::nop_fs as fs_imp;
-use crate::mem_fs as fs_imp;
+//use crate::mem_fs as fs_imp;
+use crate::static_fs as fs_imp;
 
 //use std::sys_common::{AsInner, AsInnerMut, FromInner, IntoInner};
 use crate::sys_common::{AsInner, AsInnerMut, FromInner, IntoInner};
