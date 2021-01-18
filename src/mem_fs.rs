@@ -4,17 +4,18 @@
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf, Component};
-use std::io::{self, SeekFrom};
-use std::sync::Mutex;
+use std::io::{self, SeekFrom, Cursor};
+use std::sync::{Mutex, Arc, RwLock};
 use std::cell::{RefCell, RefMut};
+use std::rc::Rc;
+use std::borrow::Borrow;
 
 use lazy_static::lazy_static;
 
 /// An open file
 #[derive(Debug)]
 pub struct File {
-    // TODO: io::cursor
-    data_file: Box<DataFile>,
+    cursor: Cursor<Vec<u8>>,
 }
 
 // Private structures holding the actual filesystem data
@@ -45,11 +46,11 @@ lazy_static! {
     static ref ROOT: Mutex<Dir> = Mutex::new(Dir {
         entries: vec![
             DirEntry {
-                name: "abc.txt".to_string(),
+                name: "hello.txt".to_string(),
                 entry: Entry::File {
-                    file: RefCell::new(DataFile {
+                    file: Arc::new(RwLock::new(DataFile {
                         data: vec![41, 42, 43],
-                    })
+                    }))
                 }
             }
         // TODO: more static entries with include_bytes!()
@@ -127,13 +128,15 @@ impl File {
                       format!("open: file {:?} not found in dir {:?}", file_name, dir)))
                 }
 
-                let data_file = RefCell::new(DataFile { data: vec![] });
+                let data_file = Arc::new(RwLock::new(DataFile { data: vec![] }));
                 dir.entries.push(DirEntry {
                     name: file_name.to_string(),
                     entry: Entry::File { file: data_file },
                 });
 
-                todo!() //Ok(File { data_file: Box::new(data_file.borrow_mut()) }) // TODO: fix expected struct `DataFile`, found struct `RefMut
+                //Ok(File { data_file: Box::new(data_file.borrow_mut()) }) // TODO: fix expected struct `DataFile`, found struct `RefMut
+                //let x = Ok(File { cursor: Cursor::new((*data_file.write().unwrap().data).to_vec()) }); x // TODO: fix borrow of moved value: `data_file`
+                todo!()
             },
         }
     }
@@ -210,7 +213,7 @@ pub struct DirEntry {
 #[derive(Debug)]
 enum Entry {
     File {
-        file: RefCell<DataFile>,
+        file: Arc<RwLock<DataFile>>,
     },
     Dir {
         dir: Dir,
@@ -225,7 +228,7 @@ impl DirEntry {
     pub fn metadata(&self) -> io::Result<FileAttr> {
         Ok(match &self.entry {
             Entry::File{file, ..} => FileAttr {
-                size: file.borrow().data.len() as u64,
+                size: file.read().unwrap().data.len() as u64,
                 ty: FileType::File,
             },
             Entry::Dir{dir, ..} => FileAttr {
