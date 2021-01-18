@@ -4,7 +4,7 @@
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::io::{self, SeekFrom, Cursor, Read, Write};
+use std::io::{self, SeekFrom, Cursor, Read};
 use std::collections::HashMap;
 use std::cell::RefCell;
 use lazy_static::lazy_static;

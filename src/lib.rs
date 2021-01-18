@@ -1,11 +1,16 @@
 pub mod fs;
-mod unix_fs;
 mod nop_fs;
-mod mem_fs;
 mod static_fs;
 mod sys_common;
+
+#[cfg(not(target_arch = "wasm32"))]
 mod fd;
+#[cfg(not(target_arch = "wasm32"))]
 mod cvt;
+#[cfg(not(target_arch = "wasm32"))]
+mod mem_fs;
+#[cfg(not(target_arch = "wasm32"))]
+mod unix_fs;
 
 #[cfg(test)]
 mod tests {
