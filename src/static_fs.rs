@@ -4,7 +4,7 @@
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::io::{self, SeekFrom, Cursor};
+use std::io::{self, SeekFrom, Cursor, Read, Write};
 use std::collections::HashMap;
 use lazy_static::lazy_static;
 
@@ -64,8 +64,8 @@ impl File {
         Ok(())
     }
 
-    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
-        Ok(0)
+    pub fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.cursor.read(buf)
     }
 
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
