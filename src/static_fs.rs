@@ -64,7 +64,7 @@ impl File {
         Ok(())
     }
 
-    pub fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         self.cursor.read(buf)
     }
 
