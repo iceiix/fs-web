@@ -238,7 +238,14 @@ pub fn unlink(p: &Path) -> io::Result<()> {
 }
 
 pub fn stat(p: &Path) -> io::Result<FileAttr> {
-    Ok(FileAttr { size: 0, ty: FileType::File })
+    if let Some(data) = get_file_data(p) {
+        Ok(FileAttr { size: data.len() as u64, ty: FileType::File })
+    // TODO: dirs
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "file not found"))
+    }
 }
 
 pub fn lstat(p: &Path) -> io::Result<FileAttr> {
